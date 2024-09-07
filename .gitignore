@@ -1,0 +1,9 @@
+input
+output
+.Rhistory
+scratch
+.ipynb_checkpoints
+.DS_Store
+cache
+.Rproj.user
+*.Rproj
