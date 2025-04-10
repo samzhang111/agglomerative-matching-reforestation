@@ -392,3 +392,40 @@ plot_areas <- land_summary %>%
 
 plot_counts | plot_areas
 ggsave(here("visualize/output/counts_and_areas_by_land_types.pdf"), width=6, height=3)
+
+# No PP
+
+land_summary_no_pp <- all_lands %>%
+  as.data.frame() %>%
+  filter(land_type_printable != 'PPs') %>%
+  group_by(land_type_printable) %>%
+  summarise(count = n(),
+            log_count = log10(count),
+            total_area = sum(area_final, na.rm = TRUE)) %>%
+  mutate(log_area = log10(total_area)) %>%
+  arrange(desc(count))
+
+plot_counts_no_pp <- land_summary_no_pp %>%
+  ggplot() +
+  geom_bar(aes(x=land_type_printable, y=count), stat="identity") +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Number of lands", x = "Land type") +
+  theme(
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.text.y.right = element_blank()
+  )
+
+plot_areas_no_pp <- land_summary_no_pp %>%
+  ggplot() +
+  geom_bar(aes(x=land_type_printable, y=total_area), stat="identity") +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Total land area (ha)", x = "Land type") +
+  theme(
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.text.y.right = element_blank()
+  )
+
+plot_counts_no_pp | plot_areas_no_pp
+ggsave(here("visualize/output/counts_and_areas_by_land_types_no_pp.pdf"), width=6, height=3)
