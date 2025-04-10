@@ -1,5 +1,5 @@
 library(pacman)
-pacman::p_load(tidyverse, sf, here, lwgeom, units, data.table, ggrepel, patchwork)
+pacman::p_load(tidyverse, sf, here, lwgeom, units, data.table, ggrepel, patchwork, ggbreak, scales, ggtext)
 
 # Turn off spherical geometry
 sf_use_s2(FALSE)
@@ -252,6 +252,7 @@ ggsave(here("visualize/output/explanatory_map.pdf"), width=10, height=5)
 # Visualization of covariates by different land tenure
 ################################################
 
+
 all_lands <- lands_df %>% 
   rename(subclasse="subclss", area_orig="area_rg",area_final="are_fnl",elevation="elevatn",
          dist_roads="dst_rds",dist_rivers="dst_rvr",dist_cities="dst_cts",pop_dens="pop_dns",
@@ -262,20 +263,21 @@ all_lands <- lands_df %>%
          prop_forest1985=pmin(1, forest1985/area_orig),
          log_pop_dens = log(pop_dens),
          land_type_printable=recode(land_type2,
-                                    "privadas" = "PP",
-                                    "assentamento" = "ARS",
-                                    "quilombola" = "QT",
-                                    "ti" = "IL",
-                                    "uc" = "PA"
+                                    "privadas" = "PPs",
+                                    "assentamento" = "ARSs",
+                                    "quilombola" = "QTs",
+                                    "ti" = "ILs",
+                                    "uc" = "PAs"
          ))
 
 all_lands$land_type_printable <- factor(all_lands$land_type_printable, 
-                                        levels = c("Private lands (PP)", 
-                                                   "Indigenous lands (IL)", 
-                                                   "Agrarian-reform\nsettlements (ARS)", 
-                                                   "Quilombola (QT)",
-                                                   "Protected areas (PA)"),
+                                        levels = c("PPs", 
+                                                   "ILs", 
+                                                   "ARSs", 
+                                                   "QTs",
+                                                   "PAs"),
                                         ordered = TRUE)
+
 
 private_lands <- all_lands %>% filter(land_type2=="privadas")
 non_private_lands <- all_lands %>% filter(land_type2!="privadas")
@@ -302,17 +304,21 @@ lands_long <- rbind(non_private_lands_long, private_lands_long)
 plot_forest <- ggplot(all_lands) + geom_density(aes(x=prop_forest1985)) + 
   labs(x="Forest cover in 1985 (%)") + 
   scale_x_continuous(labels = scales::percent_format(scale = 100)) +
-  theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) +
+  theme(
+    axis.title.y=element_blank(),
+    axis.ticks.y=element_blank(),
+    axis.text.y=element_blank()
+    ) +
   facet_grid(rows="land_type_printable", scales="free_y")
 
 plot_slope <- ggplot(all_lands) + geom_density(aes(x=slope)) + labs(x="Slope (degrees)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
 plot_temp <- ggplot(all_lands) + geom_density(aes(x=temp)) + labs(x="Temperature (°C)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
 plot_precip <- ggplot(all_lands) + geom_density(aes(x=precip)) + labs(x="Precipitation (mm/year)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
 plot_elevation <- ggplot(all_lands) + geom_density(aes(x=elevation)) + labs(x="Elevation (m)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
-plot_pop_dens <- ggplot(all_lands) + geom_density(aes(x=log_pop_dens)) + labs(x="Log Pop. Density log(pop/km²)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
-plot_dist_roads <- ggplot(all_lands) + geom_density(aes(x=dist_roads)) + labs(x="Distance to Roads (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
-plot_dist_rivers <- ggplot(all_lands) + geom_density(aes(x=dist_rivers)) + labs(x="Distance to Rivers (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
-plot_dist_cities <- ggplot(all_lands) + geom_density(aes(x=dist_cities)) + labs(x="Distance to Cities (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
+plot_pop_dens <- ggplot(all_lands) + geom_density(aes(x=log_pop_dens)) + labs(x="Pop. density log(pop/km²)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
+plot_dist_roads <- ggplot(all_lands) + geom_density(aes(x=dist_roads)) + labs(x="Distance to roads (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
+plot_dist_rivers <- ggplot(all_lands) + geom_density(aes(x=dist_rivers)) + labs(x="Distance to rivers (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
+plot_dist_cities <- ggplot(all_lands) + geom_density(aes(x=dist_cities)) + labs(x="Distance to cities (km)") + theme(axis.title.y=element_blank(), axis.ticks.y=element_blank(), axis.text.y=element_blank()) + facet_grid(rows="land_type_printable", scales="free_y")
 
 
 
@@ -326,6 +332,31 @@ ggsave(here("visualize/output/distributions_by_land_types.pdf"), width=8, height
 # Turning Tables 1 and 2 into figures
 ################################################
 
+all_lands <- lands_df %>% 
+  rename(subclasse="subclss", area_orig="area_rg",area_final="are_fnl",elevation="elevatn",
+         dist_roads="dst_rds",dist_rivers="dst_rvr",dist_cities="dst_cts",pop_dens="pop_dns",
+         persistent_rest="prsstn_",ephemeral_rest="ephmrl_",forest1985="frs1985",
+         land_type1="lnd_ty1",land_type2="lnd_ty2") %>% 
+  filter(!(land_type2 %in% c("terr_com", "publicas"))) %>%
+  mutate(land_type2=factor(land_type2),
+         prop_forest1985=pmin(1, forest1985/area_orig),
+         log_pop_dens = log(pop_dens),
+         land_type_printable=recode(land_type2,
+                                    "privadas" = "PPs",
+                                    "assentamento" = "ARSs",
+                                    "quilombola" = "QTs",
+                                    "ti" = "ILs",
+                                    "uc" = "PAs"
+         ))
+
+all_lands$land_type_printable <- factor(all_lands$land_type_printable, 
+                                        levels = c("PPs", 
+                                                   "ILs", 
+                                                   "ARSs", 
+                                                   "QTs",
+                                                   "PAs"),
+                                        ordered = TRUE)
+
 land_summary <- all_lands %>%
   as.data.frame() %>%
   group_by(land_type_printable) %>%
@@ -337,13 +368,27 @@ land_summary <- all_lands %>%
 
 plot_counts <- land_summary %>%
   ggplot() +
-  geom_bar(aes(x=land_type_printable, y=log_count), stat="identity") +
-  labs(y = "Total counts (log10)", x = "Land Type") 
+  geom_bar(aes(x=land_type_printable, y=count), stat="identity") +
+  scale_y_break(c(1500, 1990750), scales = "fixed") +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Number of lands", x = "Land type") +
+  theme(
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.text.y.right = element_blank()
+  )
 
 plot_areas <- land_summary %>%
   ggplot() +
-  geom_bar(aes(x=land_type_printable, y=log_area), stat="identity") +
-  labs(y = "Total area (log10 ha)", x = "Land Type") 
+  geom_bar(aes(x=land_type_printable, y=total_area), stat="identity") +
+  scale_y_break(c(3000000, 69000000), scales = "fixed") +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Total land area (ha)", x = "Land type") +
+  theme(
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.text.y.right = element_blank()
+  )
 
 plot_counts | plot_areas
 ggsave(here("visualize/output/counts_and_areas_by_land_types.pdf"), width=6, height=3)

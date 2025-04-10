@@ -1,11 +1,7 @@
 library(pacman)
 
-pacman::p_load(tidyverse, here)
+pacman::p_load(tidyverse, here, ggtext)
 
-
-########
-# Visualize balances
-########
 
 df_balance <- read_csv(here("summarize/output/balances.csv")) %>%
   mutate(seed=as.integer(sub("_10000$", "", seed_index))) %>%
@@ -38,6 +34,9 @@ best_seeds_by_condition <- balance_by_seed %>% group_by(condition) %>%
             best_diff_adj = first(highest_diff_adj),
             seed_index = first(seed_index), .groups='drop')
 
+########
+# Visualize balances
+########
 
 df_balance_seed <- df_balance %>%
   inner_join(best_seeds_by_condition, by = c("condition", "seed_index"))
@@ -95,6 +94,13 @@ df_results <- read_csv(here("summarize/output/results.csv")) %>%
                               )))
 
 
+y_labels <- c(
+  "Protected<br>areas",
+  "<i>Quilombola</i><br>territories",
+  "Agrarian-reform<br>settlements",
+  "Indigenous<br>lands"
+)
+
 df_filtered <- df_results %>%
   inner_join(best_seeds_by_condition %>% select(condition, seed), by = c("condition", "seed"))
 
@@ -102,15 +108,45 @@ df_filtered %>%
   filter(rematched==TRUE & drop==FALSE & condition != "pub_priv") %>%
   mutate(is_significant = p.value < 0.05) %>%
   ggplot() +
-  geom_point(aes(x = estimate, y = condition_readable, color = is_significant), size = 1.5) +
-  geom_errorbar(aes(y=condition_readable, xmin = estimate - std.error, xmax = estimate + std.error, color = is_significant), width = 0.2) +
+  #geom_errorbar(aes(y=condition_readable, xmin = estimate - std.error, xmax = estimate + std.error, color = is_significant), size = 1, width=0) +
+  #geom_point(aes(x = estimate, y = condition_readable, color = is_significant, fill = is_significant), size = 2.5, shape=21, alpha=1, stroke=1.25) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "lightblue") +
+  geom_pointrange(aes(
+    y = condition_readable,
+    x = estimate,
+    xmin = estimate - std.error,
+    xmax = estimate + std.error,
+    fill = is_significant,
+    color = is_significant
+  ),
+  shape = 21, size = 0.4, linewidth=1, stroke = 1.25
+  ) +
   scale_color_manual(
     values = c("FALSE" = "#8c8f80", "TRUE" = "#eb7f03"), 
     labels = c("FALSE" = "Not statistically significant", "TRUE" = "p < 0.05"),
-    guide = guide_legend(reverse = TRUE)
+#    guide = guide_legend(reverse = TRUE), 
+    guide = "none"
     ) +
-  geom_vline(xintercept = 1, linetype = "dashed", color = "gray") +
-  facet_wrap(outcome_readable ~ ., scale="free_x") +
+  scale_fill_manual(
+    values = c("FALSE" = "white", "TRUE" = "#eb7f03"), 
+    labels = c("FALSE" = "Not statistically significant", "TRUE" = "p < 0.05"),
+    #guide = guide_legend(reverse = TRUE),
+    guide = guide_legend(
+      override.aes = list(
+        shape = 21,
+        size = 0.3,
+        stroke = 1.25,
+        fill = c("white", "#eb7f03"),
+        color = c("#8c8f80", "#eb7f03"),  # border (stroke) = errorbar color
+        linetype = c("solid", "solid"),  # force line appearance in key
+        linewidth = 1
+      ),
+      title = NULL,
+      reverse = TRUE
+    )
+    ) +
+  scale_y_discrete(labels = y_labels) +
+  facet_wrap(outcome_readable ~ ., scale="fixed") +
   labs(x = "Amount of restoration (ha)",
        y = NULL,
        color = NULL) +
@@ -118,7 +154,15 @@ df_filtered %>%
   theme(
     legend.position = "bottom",
     plot.title = element_text(hjust = 0.5),
-    panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5)
+    #panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5),
+    axis.text.y = element_markdown(),
+    panel.grid.major = element_blank(),   
+    panel.grid.minor = element_blank(),  
+    panel.border = element_blank(),
+    axis.line = element_line(),             # Enable axis lines
+    axis.line.y.right = element_blank(),  
+    axis.line.y.left = element_blank(),    
+    axis.line.x.top = element_blank()       # Remove top spine
   ) 
 
 ggsave(here("visualize/output/main_results.pdf"), width=6, height=4)
