@@ -77,8 +77,8 @@ df_results <- read_csv(here("summarize/output/results.csv")) %>%
                                      q_priv="Quilombola\nterritories",
                                      pa_priv="Protected\nareas"),
          outcome_readable = recode(outcome,
-                                   persistent="Restoration\nsuccess",
-                                   ephemeral="Restoration\nreversal")) %>%
+                                   persistent="Long-term\nrestoration gains",
+                                   ephemeral="Restoration\nreversals")) %>%
   mutate(
     condition_readable = factor(condition_readable,
                                 levels=c(
@@ -89,8 +89,8 @@ df_results <- read_csv(here("summarize/output/results.csv")) %>%
                                 )),
     outcome_readable = factor(outcome_readable, 
                               levels=c(
-                                "Restoration\nsuccess",
-                                "Restoration\nreversal"
+                                "Long-term\nrestoration gains",
+                                "Restoration\nreversals"
                               )))
 
 
@@ -104,8 +104,12 @@ y_labels <- c(
 df_filtered <- df_results %>%
   inner_join(best_seeds_by_condition %>% select(condition, seed), by = c("condition", "seed"))
 
-df_filtered %>%
-  filter(rematched==TRUE & drop==FALSE & condition != "pub_priv") %>%
+table_s1_results <- df_filtered %>%
+  filter(rematched==TRUE & drop==FALSE & condition != "pub_priv")
+
+print(table_s1_results)
+
+table_s1_results %>%
   mutate(is_significant = p.value < 0.05) %>%
   ggplot() +
   #geom_errorbar(aes(y=condition_readable, xmin = estimate - std.error, xmax = estimate + std.error, color = is_significant), size = 1, width=0) +
@@ -136,8 +140,8 @@ df_filtered %>%
         shape = 21,
         size = 0.3,
         stroke = 1.25,
-        fill = c("white", "#eb7f03"),
-        color = c("#8c8f80", "#eb7f03"),  # border (stroke) = errorbar color
+        fill = c("#eb7f03", "white"),
+        color = c("#eb7f03", "#8c8f80"),  # border (stroke) = errorbar color
         linetype = c("solid", "solid"),  # force line appearance in key
         linewidth = 1
       ),
@@ -154,15 +158,16 @@ df_filtered %>%
   theme(
     legend.position = "bottom",
     plot.title = element_text(hjust = 0.5),
-    #panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5),
     axis.text.y = element_markdown(),
     panel.grid.major = element_blank(),   
     panel.grid.minor = element_blank(),  
-    panel.border = element_blank(),
+    panel.border = element_rect(color = "grey70", fill = NA, linewidth = 0.5),
+    #panel.border = element_blank(),
     axis.line = element_line(),             # Enable axis lines
     axis.line.y.right = element_blank(),  
     axis.line.y.left = element_blank(),    
-    axis.line.x.top = element_blank()       # Remove top spine
+    axis.line.x.top = element_blank(),       # Remove top spine
+    axis.line.x.bottom = element_blank()       # Remove top spine
   ) 
 
 ggsave(here("visualize/output/main_results.pdf"), width=6, height=4)
@@ -186,7 +191,7 @@ summary_averages <- df_results %>% group_by(condition, outcome, rematched, drop)
     TRUE ~ condition
   ))
 
-summary_averages
+print(summary_averages)
 write_csv(summary_averages, here("visualize/output/summary_averages.csv"))
 
 # Visualize averages:

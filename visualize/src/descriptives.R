@@ -1,5 +1,5 @@
 library(pacman)
-pacman::p_load(tidyverse, sf, here, lwgeom, units, data.table, ggrepel, patchwork, ggbreak, scales, ggtext)
+pacman::p_load(tidyverse, sf, here, lwgeom, units, data.table, ggrepel, patchwork, ggbreak, scales, ggtext, ggpattern)
 
 # Turn off spherical geometry
 sf_use_s2(FALSE)
@@ -44,12 +44,7 @@ iq_matches <- df_iq_priv %>%
 
 # Find a match 
 example_lands <- iq_matches %>%
-#  filter(treatment_id == (iq_matches %>% filter(num_private_lands_in_superland == 6))$treatment_id[7])
   filter(treatment_id == (iq_matches %>% filter(num_private_lands_in_superland == 5))$treatment_id[21])
-
-## Find the match with the most matches
-#example_lands <- iq_matches %>%
-#  filter(treatment_id == (iq_matches %>% arrange(desc(num_private_lands_in_superland)))$treatment_id[1])
 
 example_treatment_land <- lands_df %>% filter(id %in% c(example_lands$treatment_id[1]))
 example_lands_geo <- lands_df %>% filter(id %in% example_lands$private_land_id)
@@ -112,7 +107,7 @@ offsets <- list(
   list(x=x_base + 0.005, y=y_base + 0.026),
   list(x=x_base + 0.01, y=y_base + 0.029),
   list(x=x_base, y=y_base),
-  list(x=x_base + 0.005, y=y_base)
+  list(x=x_base + 0.007, y=y_base)
 )
 
 example_lands_geo_plottable <- example_lands_geo %>%
@@ -121,8 +116,8 @@ example_lands_geo_plottable <- example_lands_geo %>%
     treatment=0,
     label=c("C1", "C2", "C3", "C4", "C5"),
     #label=c("b", "c", "d", "e", "f"),
-    nudge_x=c(-0.0035, -0.0035, 0, -0.0045, 0),
-    nudge_y=c(0, 0, 0.0025, 0, 0.002)
+    nudge_x=c(-0.0035, -0.0035, 0, -0.0045, 0.003),
+    nudge_y=c(0, 0, 0.0025, 0, -0.005)
   )
 
 base_columns = c("normalized_geo", "treatment", "label", "nudge_x", "nudge_y")
@@ -135,11 +130,25 @@ example_plottable <- rbind(
 
 # Make map
 lands_plot <- ggplot(example_plottable) +
-  geom_sf(aes(geometry=normalized_geo, fill=factor(treatment)), alpha=0.5) +
+  geom_sf_pattern(aes(geometry=normalized_geo, fill=factor(treatment), pattern=factor(treatment)), alpha=0.5, pattern_fill = "black",
+                  pattern_density = 0.07,
+                  pattern_spacing = 0.02,
+                  pattern_angle = 45,
+                  pattern_size = 0.01) +
   geom_sf_text(aes(geometry=normalized_geo, label=label), nudge_x=example_plottable$nudge_x, nudge_y=example_plottable$nudge_y) +
   theme_void() +
-  scale_fill_manual(labels=c("Private properties", "Treatment land"), values = c("#EE6677", "#66CCEE")) +
-  guides(fill = guide_legend(reverse = TRUE, title=NULL, nrow=1)) +
+  scale_fill_manual(
+    labels = c("Private properties", "Treatment land"),
+    values = c("#EE6677", "#66CCEE")
+  ) +
+  scale_pattern_manual(
+    values = c("crosshatch", "none"),  # adjust based on treatment levels
+    labels = c("Private properties", "Treatment land")
+  ) +
+  guides(
+    fill = guide_legend(override.aes = list(pattern = c("none", "crosshatch")), reverse = TRUE, title = NULL, nrow = 1),
+    pattern = "none"
+  ) +
   theme(legend.position=c(0.5, -0.1))
 lands_plot
 
