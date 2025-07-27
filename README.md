@@ -17,7 +17,7 @@ Tasks with asterisks run on slurm.
 
 Install all of the packages in `requirements.txt`.
 
-Run `make scaffold`, and place `all_lands.shp` in `import/input`. 
+Run `make scaffold`, and place `all_lands.shp` in `import/input/v3`. 
 
 ## Running
 
