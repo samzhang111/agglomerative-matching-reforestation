@@ -1,4 +1,4 @@
-# Land tenure regimes influenced long-term restoration successes and reversals across Brazil’s Atlantic Forest 
+# Land tenure regimes influenced long-term restoration gains and reversals across Brazil’s Atlantic Forest 
 
 This is the code for our agglomerative matching technique, and for reproducing the results in the paper "Land tenure regimes influenced long-term restoration successes and reversals across Brazil’s Atlantic Forest", by Rayna Benzeev, Sam Zhang, Pedro Piffer, and Meg Mills-Novoa.
 
