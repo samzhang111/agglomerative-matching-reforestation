@@ -108,6 +108,7 @@ table_s1_results <- df_filtered %>%
   filter(rematched==TRUE & drop==FALSE & condition != "pub_priv")
 
 print(table_s1_results)
+write_csv(table_s1_results, here("visualize/output/table_s1_results.csv"))
 
 table_s1_results %>%
   mutate(is_significant = p.value < 0.05) %>%
