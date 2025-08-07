@@ -7,3 +7,5 @@ scratch
 cache
 .Rproj.user
 *.Rproj
+writing
+.snakemake

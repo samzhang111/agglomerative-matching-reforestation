@@ -1,0 +1,7 @@
+name: agglomerative_matching_reforestation
+tasks:
+- import
+- construct_superlands
+- matching
+- summarize
+- visualize

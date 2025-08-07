@@ -1,0 +1,6 @@
+cores: 4
+jobs: 4
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+use-conda: False
